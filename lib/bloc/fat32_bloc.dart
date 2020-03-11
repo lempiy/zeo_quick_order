@@ -6,7 +6,7 @@ import 'package:zeointranet/models/fat32/limit.dart';
 import 'package:zeointranet/models/session/credentials.dart';
 
 const orderBeginTime = "11:00:00";
-const originEndTime = "12:00:00";
+const originEndTime = "16:30:00";
 
 class AnnouncementResult {
   List<CurrentWithDate> announcement;
@@ -14,30 +14,34 @@ class AnnouncementResult {
   int index;
   AnnouncementResult(this.announcement, this.limits, {int index}) : this.index = index;
 
-  AnnouncementDayResult getForToday() {
-    DateTime day =
-        DateTime.parse(DateTime.now().toIso8601String().substring(0, 10));
-    String key = day.toIso8601String().substring(0, 10);
-    ExceededLimits limit =
-        limits.exceededLimits.firstWhere((l) => l.date == key);
-    if (limit == null) {
-      limit = ExceededLimits(overLimit: 0);
-    }
+  AnnouncementPageViews getForToday() {
+    DateTime day = DateTime.now();
     int i = announcement.indexWhere((d) => d.date == day);
     if (i == -1) {
       i = announcement.indexWhere((d) {
         return day.compareTo(d.date) >= 0;
       });
     }
-    CurrentWithDate menu =
-        i >= 0 ? announcement[i] : CurrentWithDate(date: day, data: []);
-    return AnnouncementDayResult(
-      menu: menu.data,
-      limit: limit.overLimit,
-      orderBegin: getOrderBeginTime(menu.date),
-      orderEnd: getOrderEndTime(menu.date),
-      prev: i <= 0 ? null : i - 1,
-      next: i == -1 || i >= menu.data.length ? null : i + 1,
+    int currentIndex = 0;
+    List<AnnouncementDayResult> pages = announcement.map((menu) {
+      String key = menu.date.toIso8601String().substring(0, 10);
+      ExceededLimits limit =
+        limits.exceededLimits.firstWhere((l) => l.date == key);
+      AnnouncementDayResult r = AnnouncementDayResult(
+        menu: menu.data,
+        limit: limit.overLimit,
+        orderBegin: getOrderBeginTime(menu.date),
+        orderEnd: getOrderEndTime(menu.date),
+        prev: currentIndex <= 0 ? null : currentIndex - 1,
+        next: currentIndex == -1 || currentIndex >= menu.data.length ?
+          null : currentIndex + 1,
+      );
+      currentIndex++;
+      return r;
+    }).toList();
+    return AnnouncementPageViews(
+      pages,
+      i,
     );
   }
 
@@ -73,6 +77,12 @@ class AnnouncementResult {
   }
 }
 
+class AnnouncementPageViews {
+  final List<AnnouncementDayResult> pages;
+  final int i;
+  AnnouncementPageViews(this.pages, this.i);
+}
+
 class AnnouncementDayResult {
   List<Current> menu;
   DateTime orderBegin;
@@ -106,11 +116,11 @@ class Fat32Bloc {
   final SessionBloc sessionBloc;
   AnnouncementResult _lastAnnouncementResult;
 
-  Stream<AnnouncementDayResult> _announcementResult = Stream.empty();
+  Stream<AnnouncementPageViews> _announcementResult = Stream.empty();
 
   BehaviorSubject<AnnouncementPageQuery> _announcementQuery = BehaviorSubject.seeded(AnnouncementPageQuery(true));
 
-  Stream<AnnouncementDayResult> get announcementResult => _announcementResult;
+  Stream<AnnouncementPageViews> get announcementResult => _announcementResult;
   Sink<AnnouncementPageQuery> get announcementRequest => _announcementQuery;
 
   Fat32Bloc(this.fat32Api, this.sessionBloc) {
@@ -131,9 +141,7 @@ class Fat32Bloc {
       return _lastAnnouncementResult;
     }).map((result) {
       try {
-        AnnouncementDayResult r = result.index == null
-            ? result.getForToday()
-            : result.getForIndex(result.index);
+        AnnouncementPageViews r = result.getForToday();
         return r;
       } catch (e) {
         print(e);
