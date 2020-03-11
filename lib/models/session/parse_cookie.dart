@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'package:http/http.dart' show Response;
 import 'package:zeointranet/models/session/http_datetime.dart';
 
 class CookieValue {
@@ -24,7 +22,7 @@ Map<String, CookieValue> parseCookie(String allSetCookie) {
             }
             _lastCookie.expires = c.expires;
             return;
-          } else  if (_lastCookie != null) {
+          } else if (_lastCookie != null) {
             acc[_lastCookie.key] = _lastCookie;
           }
           _lastCookie = c;
@@ -51,7 +49,10 @@ CookieValue _getCookie(String rawCookie) {
         return CookieValue(key, value, expires: parseHttpDate(value));
       }
       // ignore keys that aren't cookies
-      if (key == 'path' || key == 'domain' || key == 'secure' || key == 'httponly') return null;
+      if (key == 'path' ||
+          key == 'domain' ||
+          key == 'secure' ||
+          key == 'httponly') return null;
 
       return CookieValue(key, value);
     }

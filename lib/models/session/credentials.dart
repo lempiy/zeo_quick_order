@@ -4,7 +4,8 @@ class PreLoginCredentials {
   final String csrfToken;
   final String anonymousSession;
   String _error;
-  PreLoginCredentials(this.csrfToken, this.anonymousSession, {String error}) : _error = error;
+  PreLoginCredentials(this.csrfToken, this.anonymousSession, {String error})
+      : _error = error;
 
   String get error => _error;
 }
@@ -27,17 +28,17 @@ class Session {
   final String sessionId;
   final DateTime sessionValidTo;
   final String rememberMe;
-  Session(this.status, {sessionId, sessionValidTo, rememberMe}) :
-        this.sessionId = sessionId,
+  Session(this.status, {sessionId, sessionValidTo, rememberMe})
+      : this.sessionId = sessionId,
         this.sessionValidTo = sessionValidTo,
         this.rememberMe = rememberMe;
   Map toJson() => {
-    'status' : status,
-    'sessionId' : sessionId,
-    'sessionValidTo' : JsonDateTime(sessionValidTo),
-    'rememberMe' :  rememberMe,
-  };
-  get cookies => 'PHPSESSID=$status; REMEMBERME=$rememberMe';
+        'status': status,
+        'sessionId': sessionId,
+        'sessionValidTo': JsonDateTime(sessionValidTo),
+        'rememberMe': rememberMe,
+      };
+  get cookies => 'PHPSESSID=$sessionId; REMEMBERME=$rememberMe';
   Session.fromJson(Map<String, dynamic> json)
       : status = json['status'],
         sessionId = json['sessionId'],
@@ -56,10 +57,6 @@ class AuthResult {
   final String rememberMeToken;
   final DateTime sessionValidTo;
   final String error;
-  AuthResult(
-    this.sessionId,
-    this.sessionValidTo,
-    this.rememberMeToken,
-    {error}
-  ) : this.error = error;
+  AuthResult(this.sessionId, this.sessionValidTo, this.rememberMeToken, {error})
+      : this.error = error;
 }

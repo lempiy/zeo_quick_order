@@ -33,7 +33,14 @@ class Fat32Api {
     print("getLimits");
     LimitsData data = await _client
         .get(Uri.parse(_limit_url), headers: requestHeaders)
-        .then((response) => LimitsData.fromJson(json.decode(response.body)));
+        .then((response) {
+      try {
+        return LimitsData.fromJson(json.decode(response.body));
+      } catch (e) {
+        print("LimitsData.fromJson: $e");
+        throw e;
+      }
+    });
     print(data);
     return data;
   }
@@ -45,8 +52,15 @@ class Fat32Api {
     requestHeaders.putIfAbsent('Cookie', () => sessionCookies);
     print("getAnnouncement");
     Announcement data = await _client
-      .get(Uri.parse(_announcement_url), headers: requestHeaders)
-      .then((response) => announcementFromJson(response.body));
+        .get(Uri.parse(_announcement_url), headers: requestHeaders)
+        .then((response) {
+      try {
+        return announcementFromJson(response.body);
+      } catch (e) {
+        print("announcementFromJson: $e");
+        throw e;
+      }
+    });
     return data.getAsSortedList();
   }
 }

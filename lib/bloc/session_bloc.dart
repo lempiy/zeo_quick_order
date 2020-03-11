@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:localstorage/localstorage.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:zeointranet/models/session/access.dart';
 import 'package:zeointranet/models/session/credentials.dart';
 import 'package:zeointranet/models/session/login_api.dart';
-import 'package:localstorage/localstorage.dart';
 
 class SessionBloc {
   final LoginApi loginApi;
@@ -25,6 +25,7 @@ class SessionBloc {
 
   SessionBloc(this.loginApi) {
     _loginResult = _listenLoginRequest.asyncMap((credentials) async {
+      print(credentials.username);
       try {
         AuthResult result = await this
             .loginApi
@@ -33,9 +34,10 @@ class SessionBloc {
             sessionId: result.sessionId,
             sessionValidTo: result.sessionValidTo,
             rememberMe: result.rememberMeToken);
-        _logoutTimer =
-            Timer(_session.sessionValidTo.difference(DateTime.now().toUtc()), logout);
-        print("Start timer ${_session.sessionValidTo.difference(DateTime.now().toUtc())}");
+        _logoutTimer = Timer(
+            _session.sessionValidTo.difference(DateTime.now().toUtc()), logout);
+        print(
+            "Start timer ${_session.sessionValidTo.difference(DateTime.now().toUtc())}");
         _storage.setItem("session", _session);
         _sessionChange.add(_session);
         return result;
@@ -53,15 +55,19 @@ class SessionBloc {
           _logoutTimer =
               Timer(sessionTimeout.difference(DateTime.now().toUtc()), logout);
 
-          print("Start timer ${sessionTimeout.difference(DateTime.now().toUtc())}");
+          print(
+              "Start timer ${sessionTimeout.difference(DateTime.now().toUtc())}");
           return parsedSession;
         }
         return Session("failed");
       })
     ]).asyncMap((s) async {
+      print(s.status);
       _lastSessionValue = s;
       print("getAccessData");
-      _lastAccessData = await loginApi.getAccessData(s);
+      if (s.status == 'ok') {
+        _lastAccessData = await loginApi.getAccessData(s);
+      }
       print(_lastAccessData);
       return SessionWithAccessData(s, _lastAccessData);
     }).asBroadcastStream();
@@ -73,7 +79,9 @@ class SessionBloc {
     _sessionChange.add(Session("failed"));
   }
 
-  SessionWithAccessData get sessionValue => _lastSessionValue != null ? SessionWithAccessData(_lastSessionValue, _lastAccessData) : null;
+  SessionWithAccessData get sessionValue => _lastSessionValue != null
+      ? SessionWithAccessData(_lastSessionValue, _lastAccessData)
+      : null;
   Stream<SessionWithAccessData> get sessionStatusChanges => _sessionStatus;
 
   void dispose() {
