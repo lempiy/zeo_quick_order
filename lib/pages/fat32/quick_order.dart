@@ -5,6 +5,8 @@ import 'package:zeointranet/bloc/fat32_bloc.dart';
 import 'package:zeointranet/bloc/provider.dart';
 import 'package:zeointranet/models/fat32/announcement.dart';
 
+import '_counter.dart';
+
 const WeekDays = [
   "Monday",
   "Tuesday",
@@ -16,85 +18,116 @@ const WeekDays = [
 ];
 
 class QuickOrder extends StatelessWidget {
-  List<Widget> getDishesList(List<Current> list) {
-    return list
-        .map((dish) => ListTile(
-              leading: Icon(Icons.local_dining, size: 34),
-              title: Text(dish.name),
-              subtitle: Text('${dish.price.toString()} UAH'),
-              trailing: Icon(Icons.add_circle, size: 20, color: Colors.green),
-            ))
+  List<Widget> getDishesList(List<Stream<Current>> streams) {
+    print('${streams}');
+    return streams
+        .map((stream) => StreamBuilder<Current>(
+            stream: stream,
+            builder: (context, snapshot) {
+              print("REBUILD: ${snapshot.hasData}");
+              return !snapshot.hasData
+                  ? Container()
+                  : ListTile(
+                      leading: Icon(Icons.local_dining, size: 32),
+                      title: Text(snapshot.data.name),
+                      subtitle: Text('${snapshot.data.price.toString()} UAH'),
+                      trailing: Counter(
+                        initialValue: 0,
+                        minValue: 0,
+                        maxValue: 10,
+                        step: 1,
+                        decimalPlaces: 0,
+                        buttonSize: 20,
+                        textStyle:
+                            TextStyle(fontFamily: 'Comfortaa', fontSize: 20),
+                        onChanged: (value) {
+                          // get the latest value from here
+                          print(value);
+                        },
+                      ),
+                    );
+            }))
         .toList();
   }
 
-  List<Widget> _getPages(AnnouncementPageViews pages) {
-    return pages.pages.map((p) => SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                Text(p.orderBegin.day.toString(),
-                    style: TextStyle(
-                        fontFamily: 'Comfortaa',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18)),
-                Text(WeekDays[p.orderBegin.weekday - 1],
-                    style: TextStyle(fontFamily: 'Railey', fontSize: 76)),
-                Text(p.orderBegin.month.toString(),
-                    style: TextStyle(
-                        fontFamily: 'Comfortaa',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18)),
-              ],
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.account_balance_wallet),
+  List<Widget> _getPages(AnnouncementPageViewsAsStreams pages) {
+    print('pages call get');
+    return pages.pages
+        .map((p) => SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                    ),
+                    child: StreamBuilder<AnnouncementPageDetails>(
+                        stream: p.detailsStream,
+                        builder: (context, snapshot) {
+                          return !snapshot.hasData
+                              ? Container()
+                              : Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: <Widget>[
+                                    Text(
+                                        snapshot.data.orderBegin.day.toString(),
+                                        style: TextStyle(
+                                            fontFamily: 'Comfortaa',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18)),
+                                    Text(
+                                        WeekDays[
+                                            snapshot.data.orderBegin.weekday -
+                                                1],
+                                        style: TextStyle(
+                                            fontFamily: 'Railey',
+                                            fontSize: 76)),
+                                    Text(
+                                        snapshot.data.orderBegin.month
+                                            .toString(),
+                                        style: TextStyle(
+                                            fontFamily: 'Comfortaa',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18)),
+                                  ],
+                                );
+                        }),
+                  ),
+                  StreamBuilder<AnnouncementPageDetails>(
+                      stream: p.detailsStream,
+                      builder: (context, snapshot) {
+                        return !snapshot.hasData
+                            ? Container()
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8),
+                                    child: Icon(Icons.account_balance_wallet),
+                                  ),
+                                  Text("${snapshot.data.limit} UAH",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                      ))
+                                ],
+                              );
+                      }),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 20),
+                    child: ListView(
+                      primary: false,
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      children: getDishesList(p.dishesSteam),
+                    ),
+                  )
+                ],
               ),
-              Text("${p.limit} UAH",
-                  style: TextStyle(
-                    fontSize: 20,
-                  ))
-            ],
-          ),
-//              Row(
-//                children: <Widget>[
-//                  Padding(
-//                      padding: const EdgeInsets.symmetric(
-//                        horizontal: 20,
-//                        vertical: 10,
-//                      ),
-//                      child: ListView(
-//                        primary: false,
-//                        shrinkWrap: true,
-//                        physics: NeverScrollableScrollPhysics(),
-//                        children: getDishesList(snapshot.data.menu),
-//                      )
-//                  )
-//                ],
-//              )
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-            child: ListView(
-              primary: false,
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              children: getDishesList(p.menu),
-            ),
-          )
-        ],
-      ),
-    )).toList();
+            ))
+        .toList();
   }
 
   @override
@@ -103,14 +136,15 @@ class QuickOrder extends StatelessWidget {
     return StreamBuilder(
       stream: fat32Bloc.announcementResult,
       builder: (BuildContext context,
-          AsyncSnapshot<AnnouncementPageViews> snapshot) {
+          AsyncSnapshot<AnnouncementPageViewsAsStreams> snapshot) {
         print(snapshot.hasData);
         if (!snapshot.hasData) {
           return Center(
             child: CircularProgressIndicator(),
           );
         }
-        PageController controller = PageController(initialPage: snapshot.data.i);
+        PageController controller =
+            PageController(initialPage: snapshot.data.i);
         print('onbuild');
         print(snapshot.data);
         List<Widget> widgets = _getPages(snapshot.data) ?? [];
