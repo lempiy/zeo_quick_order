@@ -21,7 +21,9 @@ class QuickOrder extends StatelessWidget {
   List<Widget> getDishesList(List<Stream<Current>> streams) {
     print('${streams}');
     return streams
-        .map((stream) => StreamBuilder<Current>(
+        .map((stream) => Builder(builder: (BuildContext context) {
+          print('pre REBUILD');
+          return StreamBuilder<Current>(
             stream: stream,
             builder: (context, snapshot) {
               print("REBUILD: ${snapshot.hasData}");
@@ -46,7 +48,8 @@ class QuickOrder extends StatelessWidget {
                         },
                       ),
                     );
-            }))
+            });
+        }))
         .toList();
   }
 
@@ -148,6 +151,7 @@ class QuickOrder extends StatelessWidget {
         print('onbuild');
         print(snapshot.data);
         List<Widget> widgets = _getPages(snapshot.data) ?? [];
+        print('pages length ${widgets.length}');
         return PageView(
           controller: controller,
           children: widgets,

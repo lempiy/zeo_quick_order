@@ -63,7 +63,7 @@ class Fat32Bloc {
             Iterable<int>.generate(_state.pages[pageIndex].menu.length)
                 .map((dishIndex) {
               Current dish = _state.pages[pageIndex].menu[dishIndex];
-              return BehaviorSubject<Current>.seeded(dish).asBroadcastStream();
+              return BehaviorSubject<Current>.seeded(dish);
             }).toList())
         .toList();
     List<AnnouncementPageViewWithStreams> pages =
@@ -75,8 +75,7 @@ class Fat32Bloc {
                 day.limit,
                 QuickOrderStatus.waiting,
                 day.orderBegin,
-                day.orderEnd))
-            .asBroadcastStream(),
+                day.orderEnd)),
         subStreams,
       );
     }).toList();
