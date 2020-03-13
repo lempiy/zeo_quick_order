@@ -52,7 +52,8 @@ class QuickOrder extends StatelessWidget {
     });
   }
 
-  Widget _getPages(AnnouncementPageViewWithStreams page, int pageIndex) {
+  Widget _getPage(BuildContext context, AnnouncementPageViewWithStreams page,
+      int pageIndex) {
     return SingleChildScrollView(
         child: Column(
       mainAxisSize: MainAxisSize.min,
@@ -106,7 +107,23 @@ class QuickOrder extends StatelessWidget {
                     );
             }),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+          padding: const EdgeInsets.only(top: 15),
+          child: Center(
+            child: OutlineButton(
+                child: new Text("Schedule"),
+                textColor: Colors.white,
+                onPressed: () {},
+                borderSide: BorderSide(
+                  color: Colors.white, //Color of the border
+                  style: BorderStyle.solid, //Style of the border
+                  width: 0.8, //width of the border
+                ),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(30.0))),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: ListView.builder(
             primary: false,
             shrinkWrap: true,
@@ -143,7 +160,7 @@ class QuickOrder extends StatelessWidget {
           controller: controller,
           itemCount: snapshot.data.pages.length,
           itemBuilder: (BuildContext context, int pageIndex) {
-            return _getPages(snapshot.data.pages[pageIndex], pageIndex);
+            return _getPage(context, snapshot.data.pages[pageIndex], pageIndex);
           },
         );
       },
