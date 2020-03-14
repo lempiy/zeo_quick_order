@@ -89,14 +89,22 @@ class Fat32Bloc {
       orders[key] = [Order(name: dish.name, quantity: value)];
       return orders;
     }
+    int index = list.indexWhere((o) =>
+      o.name == dish.name);
+    if (index != -1) {
+      Order target = list[index];
+      target.quantity = value;
+      list[index] = target;
+    } else {
+      list.add(Order(name: dish.name, quantity: value));
+    }
     orders[key] = list
-        .map((o) =>
-            o.name == dish.name ? Order(name: o.name, quantity: value) : o)
         .where((o) => o.quantity > 0)
         .toList();
     if (orders[key].length == 0) {
       orders.remove(key);
     }
+    print("orders length: ${orders[key]}");
     return orders.length > 0 ? orders : null;
   }
 
@@ -181,7 +189,7 @@ class AnnouncementResult {
     List<Order> order = orders != null ? orders[key] : null;
     Current dish = menu.data[dishIndex];
     return CurrentWithOrder(
-        dish, order?.firstWhere((d) => d.name == dish.name)?.quantity ?? 0);
+        dish, order?.firstWhere((d) => d.name == dish.name, orElse: () => Order(name: dish.name, quantity: 0))?.quantity ?? 0);
   }
 
   DateTime getOrderBeginTime(DateTime date) {
