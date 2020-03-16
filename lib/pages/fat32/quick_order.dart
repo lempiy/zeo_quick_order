@@ -52,7 +52,7 @@ class QuickOrder extends StatelessWidget {
     });
   }
 
-  Widget _getPage(BuildContext context, AnnouncementPageViewWithStreams page,
+  Widget _getPage(BuildContext context, Fat32Bloc bloc, AnnouncementPageViewWithStreams page,
       int pageIndex) {
     return SingleChildScrollView(
         child: Column(
@@ -112,7 +112,9 @@ class QuickOrder extends StatelessWidget {
             child: OutlineButton(
                 child: new Text("Schedule"),
                 textColor: Colors.white,
-                onPressed: () {},
+                onPressed: () async {
+                  await bloc.displayNotification();
+                },
                 borderSide: BorderSide(
                   color: Colors.white, //Color of the border
                   style: BorderStyle.solid, //Style of the border
@@ -160,7 +162,7 @@ class QuickOrder extends StatelessWidget {
           controller: controller,
           itemCount: snapshot.data.pages.length,
           itemBuilder: (BuildContext context, int pageIndex) {
-            return _getPage(context, snapshot.data.pages[pageIndex], pageIndex);
+            return _getPage(context, fat32Bloc, snapshot.data.pages[pageIndex], pageIndex);
           },
         );
       },

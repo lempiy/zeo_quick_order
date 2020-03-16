@@ -5,12 +5,14 @@ import 'package:zeointranet/models/fat32/announcement.dart';
 import 'package:zeointranet/models/fat32/fat32_api.dart';
 import 'package:zeointranet/models/fat32/limit.dart';
 import 'package:zeointranet/models/fat32/order.dart';
+import 'package:zeointranet/models/notification/notification_api.dart';
 
 const orderBeginTime = "11:00:00";
 const originEndTime = "16:30:00";
 
 class Fat32Bloc {
   final Fat32Api fat32Api;
+  NotificationApi notificationApi;
   final SessionBloc sessionBloc;
   final LocalStorage _storage = LocalStorage("fat32.json");
   AnnouncementPageViews _state;
@@ -21,46 +23,72 @@ class Fat32Bloc {
   Stream<AnnouncementPageViewsAsStreams> _announcementResult = Stream.empty();
 
   BehaviorSubject<AnnouncementPageQuery> _announcementQuery =
-      BehaviorSubject.seeded(AnnouncementPageQuery(QueryCommand.request));
+      BehaviorSubject.seeded(AnnouncementPageQuery(QueryCommand.init));
 
   Stream<AnnouncementPageViewsAsStreams> get announcementResult =>
       _announcementResult;
   Sink<AnnouncementPageQuery> get announcementRequest => _announcementQuery;
 
   Fat32Bloc(this.fat32Api, this.sessionBloc) {
+    this.notificationApi = this.notificationApi ??
+        NotificationApi(onSelectNotification: this.onSelectNotification,
+            onDidReceiveLocalNotification: onDidReceiveNotification);
     _announcementResult =
         _announcementQuery.distinct().asyncMap((AnnouncementPageQuery q) async {
-      switch (q.command) {
+        switch (q.command) {
         case QueryCommand.get:
-        case QueryCommand.request:
           return _getListOfData(q);
+        case QueryCommand.init:
+          return _start(q);
         default:
           throw 'AnnouncementQuery. Unknown command ${q.command}';
       }
     }).asBroadcastStream();
   }
 
+  Future<dynamic> onSelectNotification(String data) {
+    print('not get: $data');
+  }
+
+  Future<dynamic> onDidReceiveNotification(int id, String data, String a, String b) {
+    print('receieve: $data');
+  }
+  
+  Future <AnnouncementPageViewsAsStreams> _start(
+      AnnouncementPageQuery q) async {
+    print('before initi');
+    await this.notificationApi.initialize();
+    print('after initia');
+    return await _getListOfData(q);
+  }
+
   Future<AnnouncementPageViewsAsStreams> _getListOfData(
       AnnouncementPageQuery q) async {
     String cookies = this.sessionBloc.sessionValue.session.cookies;
-    print(cookies);
-    if (_state != null && q.command != QueryCommand.request)
+    if (_state != null && q.command != QueryCommand.init)
       return _getListOfStreamsFromState();
     try {
       _result = await this.fat32Api.getAnnouncementResult(cookies);
       await _storage.ready;
     } catch (e) {
-      print(e);
       throw e;
     }
     try {
-      _orders = _storage.getItem("orders");
+      Map<String, dynamic> m = _storage.getItem("orders");
+      if (m != null) {
+        _orders = orderFromMap(m);
+      }
+      print('orders: $_orders');
       _state = _result.getForToday(_orders);
       return _getListOfStreamsFromState();
     } catch (e) {
       print('main: ${e}');
       throw e;
     }
+  }
+
+  Future<void> displayNotification() async {
+    return await notificationApi.display();
   }
 
   void changeDishQuantityValue(int pageIndex, int dishIndex, int value) {
@@ -70,6 +98,7 @@ class Fat32Bloc {
     assert(dish != null);
     String key = page.date.toIso8601String().substring(0, 10);
     _orders = _getChangedOrders(key, dish, value);
+    _orders == null ?  _storage.deleteItem("orders") : _storage.setItem("orders", _orders);
     CurrentWithOrder newDish =
         _result.getForIndex(pageIndex, dishIndex, _orders);
     _dishStreams[pageIndex][dishIndex].add(newDish);
@@ -155,11 +184,15 @@ class AnnouncementResult {
       String key = menu.date.toIso8601String().substring(0, 10);
       ExceededLimits limit =
           limits.exceededLimits.firstWhere((l) => l.date == key);
+      print('before');
       List<Order> order = orders != null ? orders[key] : null;
+      print('after $order');
       List<CurrentWithOrder> orderMenu = menu.data
           .map((dish) => CurrentWithOrder(dish,
-              order?.firstWhere((d) => d.name == dish.name)?.quantity ?? 0))
+              order?.firstWhere((d) => d.name == dish.name,
+                  orElse: () => Order(name: dish.name, quantity: 0))?.quantity ?? 0))
           .toList();
+      print('here $orderMenu');
       AnnouncementDayResult r = AnnouncementDayResult(
         menu: orderMenu,
         limit: limit.overLimit,
@@ -182,7 +215,8 @@ class AnnouncementResult {
     CurrentWithDate menu = announcement[pageIndex];
     String key = menu.date.toIso8601String().substring(0, 10);
     ExceededLimits limit =
-        limits.exceededLimits.firstWhere((l) => l.date == key);
+        limits.exceededLimits.firstWhere((l) => l.date == key,
+            orElse: () => ExceededLimits(overLimit: 0));
     if (limit == null) {
       limit = ExceededLimits(overLimit: 0);
     }
@@ -261,7 +295,7 @@ class AnnouncementDayResult {
 }
 
 enum QueryCommand {
-  request,
+  init,
   get,
 }
 
