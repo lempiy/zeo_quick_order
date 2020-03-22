@@ -89,6 +89,7 @@ class Fat32Bloc {
   }
 
   Future<void> scheduleNotification(int id, DateTime date, String text, String payload) async {
+    await notificationApi.cancel(id);
     return await notificationApi.schedule(
       id,
       DateTime.now().add(Duration(seconds: 5)),

@@ -45,6 +45,9 @@ class NotificationApi {
         0, title, text, platformChannelSpecifics,
         payload: 'item x');
   }
+  Future<void> cancel(int id) async {
+    return await plugin.cancel(id);
+  }
   Future<void> schedule(int id, DateTime date, String title, String text, String payload) async {
     var androidPlatformChannelSpecifics =
     AndroidNotificationDetails('zeoapp',

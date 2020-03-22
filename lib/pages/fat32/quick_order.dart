@@ -122,7 +122,7 @@ class QuickOrder extends StatelessWidget {
                           textColor: Colors.white,
                           onPressed: () async {
                             await bloc.scheduleNotification(
-                                snapshot.data.orderBegin.microsecondsSinceEpoch,
+                                (snapshot.data.orderBegin.microsecondsSinceEpoch / 1e7).floor(),
                                 snapshot.data.orderBegin,
                                 "It's time to make your FAT32 order",
                                 snapshot.data.orderBegin.toIso8601String(),
