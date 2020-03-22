@@ -34,7 +34,7 @@ class NotificationApi {
     print('finish');
     return true;
   }
-  Future<void> display() async {
+  Future<void> display(String title, String text) async {
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'your channel id', 'your channel name', 'your channel description',
         importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
@@ -42,7 +42,24 @@ class NotificationApi {
     var platformChannelSpecifics = NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
     await plugin.show(
-        0, 'Hello', 'world', platformChannelSpecifics,
+        0, title, text, platformChannelSpecifics,
         payload: 'item x');
+  }
+  Future<void> schedule(int id, DateTime date, String title, String text, String payload) async {
+    var androidPlatformChannelSpecifics =
+    AndroidNotificationDetails('zeoapp',
+        'fat32', 'fat32 announce channel',
+        importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+    var iOSPlatformChannelSpecifics =
+    IOSNotificationDetails();
+    NotificationDetails platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await plugin.schedule(
+        id,
+        title,
+        text,
+        date,
+        platformChannelSpecifics,
+      payload: payload);
   }
 }

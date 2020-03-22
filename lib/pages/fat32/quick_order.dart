@@ -93,37 +93,53 @@ class QuickOrder extends StatelessWidget {
               return !snapshot.hasData
                   ? Container()
                   : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Icon(Icons.account_balance_wallet),
-                        ),
-                        Text("${snapshot.data.limit} UAH",
-                            style: TextStyle(
-                              fontSize: 20,
-                            ))
-                      ],
-                    );
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Icon(Icons.account_balance_wallet),
+                  ),
+                  Text("${snapshot.data.limit} UAH",
+                      style: TextStyle(
+                        fontSize: 20,
+                      ))
+                ],
+              );
             }),
-        Padding(
-          padding: const EdgeInsets.only(top: 15),
-          child: Center(
-            child: OutlineButton(
-                child: new Text("Schedule"),
-                textColor: Colors.white,
-                onPressed: () async {
-                  await bloc.displayNotification();
-                },
-                borderSide: BorderSide(
-                  color: Colors.white, //Color of the border
-                  style: BorderStyle.solid, //Style of the border
-                  width: 0.8, //width of the border
-                ),
-                shape: new RoundedRectangleBorder(
-                    borderRadius: new BorderRadius.circular(30.0))),
-          ),
-        ),
+        StreamBuilder<AnnouncementPageDetails>(
+            stream: page.detailsStream,
+            builder: (context, snapshot) {
+              return !snapshot.hasData
+                  ? Container()
+                  : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15),
+                    child: Center(
+                      child: OutlineButton(
+                          child: new Text("Schedule"),
+                          textColor: Colors.white,
+                          onPressed: () async {
+                            await bloc.scheduleNotification(
+                                snapshot.data.orderBegin.microsecondsSinceEpoch,
+                                snapshot.data.orderBegin,
+                                "It's time to make your FAT32 order",
+                                snapshot.data.orderBegin.toIso8601String(),
+                            );
+                          },
+                          borderSide: BorderSide(
+                            color: Colors.white, //Color of the border
+                            style: BorderStyle.solid, //Style of the border
+                            width: 0.8, //width of the border
+                          ),
+                          shape: new RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(30.0))),
+                    ),
+                  ),
+                ],
+              );
+            }),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: ListView.builder(
