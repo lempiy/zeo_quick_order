@@ -104,8 +104,7 @@ class Fat32Bloc {
     Current dish = _result.announcement[pageIndex].data[dishIndex];
     assert(page != null);
     assert(dish != null);
-    String key = page.date.toIso8601String().substring(0, 10);
-    _orders = _getChangedOrders(key, dish, value);
+    _orders = _getChangedOrders(page.date, dish, value);
     _orders == null ?  _storage.deleteItem("orders") : _storage.setItem("orders", _orders);
     CurrentWithOrder newDish =
         _result.getForIndex(pageIndex, dishIndex, _orders);
@@ -113,7 +112,9 @@ class Fat32Bloc {
   }
 
   Map<String, List<Order>> _getChangedOrders(
-      String key, Current dish, int value) {
+      DateTime pageDate, Current dish, int value) {
+    String key = pageDate.toIso8601String().substring(0, 10);
+    int notificationId = (pageDate.millisecondsSinceEpoch / 1e7).floor();
     Map<String, List<Order>> orders = _orders;
     if (orders == null) {
       orders = {
@@ -138,8 +139,13 @@ class Fat32Bloc {
     orders[key] = list
         .where((o) => o.quantity > 0)
         .toList();
+    print(notificationId);
     if (orders[key].length == 0) {
+      notificationApi.cancel(notificationId);
       orders.remove(key);
+    } else {
+      scheduleNotification(notificationId, DateTime.now().add(Duration(seconds: 2)),
+          "It's time do your quick order", key);
     }
     print("orders length: ${orders[key]}");
     return orders.length > 0 ? orders : null;
