@@ -9,9 +9,9 @@ import 'package:zeointranet/models/fat32/limit.dart';
 class Fat32Api {
   final Client _client = Client();
   static const String _limit_url =
-      'http://10.0.2.2:1234/api/fat32/exceeded-limits';
+      'https://pacific-retreat-46679.herokuapp.com/api/fat32/exceeded-limits';
   static const String _announcement_url =
-      'http://10.0.2.2:1234/api/fat32/announcement';
+      'https://pacific-retreat-46679.herokuapp.com/api/fat32/announcement';
 
   Future<AnnouncementResult> getAnnouncementResult(
       String sessionCookies) async {

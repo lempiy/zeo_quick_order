@@ -118,16 +118,9 @@ class QuickOrder extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 15),
                     child: Center(
                       child: OutlineButton(
-                          child: new Text("Schedule"),
+                          child: new Text("Order"),
                           textColor: Colors.white,
-                          onPressed: () async {
-                            await bloc.scheduleNotification(
-                                (snapshot.data.orderBegin.microsecondsSinceEpoch / 1e7).floor(),
-                                snapshot.data.orderBegin,
-                                "It's time to make your FAT32 order",
-                                snapshot.data.orderBegin.toIso8601String(),
-                            );
-                          },
+                          onPressed: () async {},
                           borderSide: BorderSide(
                             color: Colors.white, //Color of the border
                             style: BorderStyle.solid, //Style of the border

@@ -7,11 +7,11 @@ import 'package:zeointranet/models/session/parse_cookie.dart';
 
 class LoginApi {
   final Client _client = Client();
-  static const String _csrf_url = 'http://10.0.2.2:1234/login';
+  static const String _csrf_url = 'https://pacific-retreat-46679.herokuapp.com/login';
   static const String _login_url =
-      'http://10.0.2.2:1234/login_check';
+      'https://pacific-retreat-46679.herokuapp.com/login_check';
   static const String _access_url =
-      'http://10.0.2.2:1234/api/access/get';
+      'https://pacific-retreat-46679.herokuapp.com/api/access/get';
 
   Future<PreLoginCredentials> getCSRF() async {
     List<String> data =
@@ -57,7 +57,7 @@ class LoginApi {
       "_username": username,
       "_password": password,
       "_remember_me": "on",
-      "_target_path": "http://10.0.2.2:1234/login",
+      "_target_path": "https://pacific-retreat-46679.herokuapp.com/login",
     };
     List<String> parts = [];
     data.forEach((key, value) {

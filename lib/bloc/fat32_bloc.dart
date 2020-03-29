@@ -92,7 +92,7 @@ class Fat32Bloc {
     await notificationApi.cancel(id);
     return await notificationApi.schedule(
       id,
-      DateTime.now().add(Duration(seconds: 5)),
+      date,
       'Fat32 Order Time',
       text,
       payload,
@@ -114,7 +114,7 @@ class Fat32Bloc {
   Map<String, List<Order>> _getChangedOrders(
       DateTime pageDate, Current dish, int value) {
     String key = pageDate.toIso8601String().substring(0, 10);
-    int notificationId = (pageDate.millisecondsSinceEpoch / 1e7).floor();
+    int notificationId = (pageDate.millisecondsSinceEpoch / 1e5).floor();
     Map<String, List<Order>> orders = _orders;
     if (orders == null) {
       orders = {
@@ -144,7 +144,8 @@ class Fat32Bloc {
       notificationApi.cancel(notificationId);
       orders.remove(key);
     } else {
-      scheduleNotification(notificationId, DateTime.now().add(Duration(seconds: 2)),
+      DateTime dateToSchedule = DateTime.parse("$key $orderBeginTime");
+      scheduleNotification(notificationId, dateToSchedule,
           "It's time do your quick order", key);
     }
     print("orders length: ${orders[key]}");
