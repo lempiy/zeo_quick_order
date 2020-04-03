@@ -57,6 +57,7 @@ class NotificationApi {
     IOSNotificationDetails();
     NotificationDetails platformChannelSpecifics = NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    print("schedule id: $id");
     await plugin.schedule(
         id,
         title,

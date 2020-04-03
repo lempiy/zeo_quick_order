@@ -120,11 +120,21 @@ class Fat32Bloc {
       orders = {
         key: [Order(name: dish.name, quantity: value)]
       };
+      if (value > 0) {
+        DateTime dateToSchedule = DateTime.parse("$key $orderBeginTime");
+        scheduleNotification(notificationId, dateToSchedule,
+            "It's time do your quick order", key);
+      }
       return orders;
     }
     List<Order> list = orders[key];
     if (list == null) {
       orders[key] = [Order(name: dish.name, quantity: value)];
+      if (value > 0) {
+        DateTime dateToSchedule = DateTime.parse("$key $orderBeginTime");
+        scheduleNotification(notificationId, dateToSchedule,
+        "It's time do your quick order", key);
+      }
       return orders;
     }
     int index = list.indexWhere((o) =>
