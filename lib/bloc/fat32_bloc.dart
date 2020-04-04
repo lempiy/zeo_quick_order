@@ -197,11 +197,11 @@ class AnnouncementResult {
       : this.index = index;
 
   AnnouncementPageViews getForToday(Map<String, List<Order>> orders) {
-    DateTime day = DateTime.now();
+    DateTime day = DateTime.parse(DateTime.now().toIso8601String().substring(0, 10)+" 00:00:00");
     int i = announcement.indexWhere((d) => d.date == day);
     if (i == -1) {
       i = announcement.indexWhere((d) {
-        return day.compareTo(d.date) >= 0;
+        return d.date.compareTo(day) >= 0;
       });
     }
 
